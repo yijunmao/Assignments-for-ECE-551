@@ -1,0 +1,166 @@
+#include "Cmd.h"
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+
+bool Cmd::chkSpaces() {
+  for (size_t index = 0; index < content.size(); index++) {
+    if (content[index] != ' ') {
+      return false;
+    }
+  }
+  return true;
+}
+
+void Cmd::printPrompt() {
+  std::cout << "myShell$";
+}
+
+std::string Cmd::read() {
+  if (!(std::getline(std::cin, content))) {
+    exit(EXIT_FAILURE);
+  }
+  return content;
+}
+
+// need to be fixed for general case
+bool Cmd::checkExit() {
+  if (content.find("exit") != std::string::npos) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+int Cmd::run() {
+  pid_t pid = 0;
+  pid_t wpid;
+  int status;
+  //char * environ[] = {NULL};
+  // fork an existing process into two seperate ones
+  pid = fork();
+  if (pid < 0) {
+    std::cerr << "Create process failure!\n";
+  }
+  // in child process
+  if (pid == 0) {
+    char _args[1000][30];
+    char * args[1000];
+    for (size_t i = 0; i < parsed.size(); i++) {
+      _args[i][0] = '\0';
+      strcpy(_args[i], parsed[i].c_str());
+      args[i] = _args[i];
+    }
+    args[parsed.size()] = NULL;
+
+    if (execve(args[0], args, environ) < 0) {
+      std::cerr << "Command " << content << " not found" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // in parent process
+  else {
+    do {
+      wpid = waitpid(pid, &status, WCONTINUED | WUNTRACED);
+
+      // wait child process fails
+      if (wpid == -1) {
+        std::cerr << "waitpid failed!\n";
+        exit(EXIT_FAILURE);
+      }
+      // exit normally and return its status
+      if (WIFEXITED(status)) {
+        std::cout << "Program exited with status " << WEXITSTATUS(status) << std::endl;
+      }
+      // killed by signal
+      else if (WIFSIGNALED(status)) {
+        std::cout << "Program was killed by signal " << WTERMSIG(status) << std::endl;
+      }
+      // stopped by signal
+      else if (WIFSTOPPED(status)) {
+        std::cout << "Program was stopped by signal " << WSTOPSIG(status) << std::endl;
+      }
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+
+  return 1;
+}
+
+bool Cmd::checkSlash() {
+  if (parsed[0].find('/') != std::string::npos) {
+    return true;
+  }
+  return false;
+}
+
+std::string Cmd::deslash(std::string input) {
+  size_t index = input.find("\\ ");
+  while (index != std::string::npos) {
+    input.erase(index, 1);
+    index = input.find("\\ ");
+  }
+  return input;
+}
+
+std::vector<std::string> Cmd::parse() {
+  size_t prev = 0;
+  size_t current = 0;
+
+  current = content.find(delimiter);
+
+  while (current != std::string::npos) {
+    // space at the beginning
+    if (current == 0) {
+      prev = current + 1;
+      current = content.find(delimiter, prev);
+    }
+
+    // escape space
+    else if (content[current] == ' ' and content[current - 1] == '\\') {
+      current = content.find(delimiter, current + 1);
+    }
+
+    // seperator space
+    else if (content[current] == ' ' and content[current - 1] != '\\' and current != prev) {
+      parsed.push_back(deslash(content.substr(prev, current - prev)));
+      prev = current + 1;
+      current = content.find(delimiter, prev);
+    }
+
+    // redundent space
+    else if (content[current] == ' ' and content[current - 1] != '\\' and current == prev) {
+      prev = current + 1;
+      current = content.find(delimiter, prev);
+    }
+  }
+
+  // save the last argument
+  if (prev < content.length()) {
+    parsed.push_back(deslash(content.substr(prev, current)));
+  }
+
+  return parsed;
+}
+
+void Cmd::display() {
+  for (typename std::vector<std::string>::iterator it = parsed.begin(); it != parsed.end(); ++it) {
+    std::cout << *it << std::endl;
+  }
+}
+
+void Cmd::getFileName(const char * dirName) {
+  // directory from PATH variable
+  if (dirName != NULL) {
+    std::string dir(dirName);
+    parsed[0] = dir + "/" + parsed[0];
+    //std::cout << "full path is " << parsed[0] << std::endl;
+  }
+}

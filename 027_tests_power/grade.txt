@@ -1,0 +1,53 @@
+Grading at 09/14/2018:15:50:23.815801
+For commit ID 1e4586a1d56a3e9e5b2f0c7137ba0ba77997575a
+-------------------------------------
+**Testing correct implementation **
+
+-------------------------------------
+**Testing broken implementation 10 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 11 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 1 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 2 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 3 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 4 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 5 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 6 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 7 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 8 **
+power function failed to produce expected answer!
+
+-------------------------------------
+**Testing broken implementation 9 **
+power function failed to produce expected answer!
+
+All tests were correct.
+
+
+Overall Grade: PASSED

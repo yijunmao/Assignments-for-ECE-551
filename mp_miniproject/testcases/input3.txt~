@@ -1,0 +1,31 @@
+cd /home
+cd 
+cd dir
+cd /home/ym134/ece551/mp_miniproject
+set a%b 1
+echo $a%b
+set a b
+echo $a
+set var_2 2
+echo $var_2
+  set c h ello  
+echo $c
+set d $var_21$var_2
+echo $d
+env
+inc a
+echo $a
+inc var_2
+echo $var_2
+inc d
+echo $d
+set c 0x14
+inc c
+echo $c
+inc e
+echo $e
+env
+export a
+env
+set PATH /home  
+ls

@@ -1,0 +1,2 @@
+test: test_BstMap.cpp
+	g++ -Wall -Werror -std=gnu++98 -pedantic -c -o test test_BstMap.cpp

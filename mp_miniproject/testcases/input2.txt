@@ -1,0 +1,12 @@
+/bin/echo test
+/bin/cat TESTING.txt
+/bin/cp numerics.txt test1.txt
+ls
+rm test1.txt
+ls
+/bin/rm/test2.txt
+ls -l
+Cmd.cpp
+  cat  numerics.txt
+cp numerics.txt t\ est.txt
+ls

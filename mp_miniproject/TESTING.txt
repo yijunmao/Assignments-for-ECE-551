@@ -1,0 +1,140 @@
+--------------------------------
+Overview of the simplified shell
+--------------------------------
+(1) Design: the main function is in myShell.cpp, except that, three class are defined. Cmd class is the base class which contains fields like the raw command as a string named content, the parsing delimiter, as well as vector of strings to save the arguments of a parsed command. It also includes several important methods: the one called parse() parses the commands, run() runs the commands by forking a process and execute it. The Directory class contains a field called path which stores the PATH variable, this class has methods iniEnv which can initialize the ECE551 environment variable, and searchProgram() to search the program under given directories. The third class called CmdVar inherits from the parent class Cmd and offers new methods to handle builtin commands, replacing dollar sign in the input string, and so on.
+
+(2) PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+(3) Environment variable: an extern environment variable is declared outside of the main function.
+
+
+
+-------
+TESTING
+-------
+You can either run ./myShell to start the simplified shell and enter commands to test it OR run ./myShell < testcases/input1(or 2,3) to test step 1, 2, and 3 seperately.
+
+----------------------------------------------------------------------------
+test step 1: test commands with no arguments and full path given by the user
+----------------------------------------------------------------------------
+
+substep 1: test commands which exist
+
+(1) Run "/bin/pwd", you will see that it prints /home/ym134/ece551/mp_miniproject followed by a line indicating the exit status of the program. These outputs are 
+correct since the command is successfully executed and the pwd command with full path should print the working directory.
+
+(2) Run "/bin/ls", you will see that it prints Cmd.h, Cmd.cpp Cmd.o, CmdVar.h, CmdVar.cpp, CmdVar.o, Directory.h, Directory.cpp, Directory.o, myShell.cpp, myShell.o, myShell, Makefile, commandShell.txt, numerics.txt, README, and TESTING.txt, which is correct because ls command should list all the files under the current directory, which is /home/ym134/ece551/mp_miniproject.
+
+
+substep 2: test unexisted commands
+
+(1) Run "CommandNotExist", you will see it prints "Command CommandNotExist not fould" since this program neither exist in the PATH environment variable nor exist in the given directory by the user.
+
+
+substep 3: test exit as well as EOF
+
+(1) Either exit or EOF(Ctrl+D) is entered, you will see /ece551/mp_miniproject/, which is correct since the shell should exit after reading these inputs.
+
+
+substep4: test white spaces
+
+(1) Enter white spaces or just press enters, you will see nothing happens and the prompt being printed again. It is correct because nothing is entered and the shell should wait for a new valid input.  
+
+
+---------------------------------------------------------------------------------
+test step 2: test commands which can take arguments and without absolute pathname
+---------------------------------------------------------------------------------
+
+substep 1: test command with a forward slash in its pathname and it can be found
+
+(1) Run "/bin/echo test", you will see it prints the text user just entered through stdin following echo, in this case "test", which is correct because echo will 
+reflect whatever user has enter through keyboard.
+ 
+(2) Run "/bin/cat TESTING.txt", you will see it prints the contents in TESTING.txt, which is correct because the cat command should open the file and print out all of its contents.
+
+(3) Run "/bin/cp numerics.txt test1.txt", you will see a new file named "test1.txt" with the same contents as file numerics.txt being created. This is correct as cp command should copy the contents of the first argument following it to the second one.
+
+
+substep 2: test command with a forward slash in its pathname but cannot be found
+
+(1) Run "/bin/rm/test2.txt", you will see it prints "/bin/rm: cannot remove 'test1.txt': No such file or directory", which is correct since this command exists but the file following as the argument does not exist in the working directory.
+
+
+substep 3: test command without forward slash in its pathname
+ 
+(1) Run "ls -l", you will see it prints the same results as in step1->substep1->(2). In addition, it prints all the files and directories under the working directory, which is correct since now the shell has incorporated the functionality to search programs automatically under all directories listed in ECE551PATH(in my program is declared as a field in class Directory in Directory.h file) until it finds it (or prints "command CommandName not found" if the program is not found after going through all the directories in the path variable) if the given program name does not include a forward slash to indicate its path.
+
+(2) Run "Cmd.cpp", you will see it prints "Command Cmd.cpp not found", which is correct since it's not under any directories in the path variable.
+
+
+substep 4: test commands which can take arguments with arbitrary white spaces between arguments
+
+(1) Run "  cat   numerics.txt  ", you will see it prints all the contents in the "numerics.txt" file just as "cat numerics.txt" does, which is correct because the shell should be able to handle arbitrary white spaces which separate arguments as well spaces at the beginning and end of filename.
+
+
+substep 5: test commands which can take arguments with escaped white spaces
+ 
+(1) Run "cp numerics.txt t\ est.txt", you will see a file named "t est.txt" being created, which is correct because my shell treats back slash followed by a white space as white space. But in my understanding other cases in which back slash followed by any other characters "\a" should be kept as what it is.
+
+
+
+--------------------------------------
+test step 3: Directories and variables
+--------------------------------------
+
+substep 1: test the "cd" command
+
+(1) Run "cd /home", you will see now the simplified shell prints out "myShell/home $", which is correct since the cd command should change the working directory to the argument taken by it.
+
+(2) Run "cd  ", you will see nothing happens and the shell prints prompt as before, which is correct since in this case the cd command takes no argument and should do nothing.
+
+(3) Run "cd dir", you will see it prints "Change directory failed: No such file or directory", which is correct because no directory with name "dir" exists.
+
+
+substep 2: test the "set" command
+
+(1) Run "set a%b 1", and then run "echo $a%b"you will see it prints "$a%b". It is correct because a%b is not a valid variable name, and this set command is invalid. When running "echo $a%b", the shell will try to replace "$a%b" with its value, which does not exist yet, thus it will just return back the string, which is "$a%b".
+
+(2) Run "set a b" and then run "echo $a", you will see it prints "b", which is correct because variable a is now set to a string b.
+
+(3) Run "set var_2 2" and then run "echo $var_2", you will see it prints "2", which is correct because var_2 is a valid variable name and it is now set to 2.
+
+(4) Run " set c h ello  " and then run "echo $c", you will see it prints "h ello  ", which is correct because all the characters following the variable including white spaces (in this case c) should be treated as the value of c.
+
+(5) Run "set d $var_21$var_2" and then run "echo $d", you will see it prints "212", which is correct because var_2 is set before variable d, thus when setting d, the values of all the already set variables should be used for evaluation. 
+
+(6) Run "env", you will see variables a, var_2, c, and d do not appear in the environment list, which is correct because these variables are just set but not exported for other programs, so they should not appear in the environment list.
+
+
+substep 3: test the "inc" command
+
+(1) Run "inc a", and then run "echo $a", it prints "1", which is correct because "a" already has a value, but not a number, so when typing "echo $a", its initial value is 0, and it should be incremented to 1.
+
+(2) Run "inc var_2", and then run "echo $var_2", it prints "3", which is correct because "var_2" already has a 10 based value 2, increase that will lead to value "3".
+
+(3) Run "inc d", and then run "echo $d", it prints "213", which is correct because variable "d" is now evaluated to a 10 based number 212, and thus "inc" command will change its value to "213".
+
+(4) Run "set c 0x14", and then run "inc c", then run "echo $c", it prints "1", which is correct because variable "c" is set to a hex number(not a 10 based number), calling "inc" on it will set its initial value to 0 and increase its value to "1".
+
+(5) Run "inc e", and then run "echo $e", it prints "1", which is correct because variable "e" is not set yet, and run "inc" command will initialize its value to 0 and increase its value to 1.
+
+(6) Run "env", you will not see the same environment list just as before, which measn all variables which have been set so far will not appear in the environment list. It is correct because those variables haven't been exported, so they should not show up.
+
+
+substep 4: test the "export" command
+
+(1) Run "export a" and then run "env", now you will see "a=1" at the end of the environment list being printed. It is correct because now the variable "a" is placed in the environment for other programs.
+
+
+substep 5: test if "PATH" is set, whether it will affect shell's search for programs
+
+(1) Run "set PATH /home", then run "ls", you will see that it prints "Command ls not found", which is correct because the "PATH" variable is used to determine under which directories programs are searched, and I update it and put it back into the environment list after modifying it. This will affect search for programs and lead to failure to find "ls" command, which sits under the "/bin" directory. 
+
+
+   
+Lessons got from this project
+-----------------------------
+1. Thorough planning before starting coding is important for a middle-sized or large-sized project because it turns out to save you huge amount of time.
+
+2. Abstraction in a meaningful way and design classes such that it is easy to extend its functionalities is really hard and needs time and lots of coding experience.
+

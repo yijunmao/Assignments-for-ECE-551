@@ -1,0 +1,189 @@
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <sstream>
+#include <utility>
+#include <vector>
+
+//#include "hashtable.h"
+
+using namespace std;
+
+template<typename Hasher>
+class HashTable
+{
+ private:
+  vector<list<pair<string, string> > > * table;
+  Hasher hash;
+  unsigned int buckets;
+  //unsigned int count;
+
+ public:
+  // default constructor
+  HashTable() : table(NULL), hash(std::hash<string>()), buckets(2000) {
+    table = new vector<list<pair<string, string> > >;
+
+    table->resize(2000);
+  }
+
+  ~HashTable() { delete table; }
+  // helper contain method
+  // given the hash value, return a string
+  // if found, return the value of the found element(filename)
+  // if not found, return an empty string
+  // add method
+  string contains(list<pair<string, string> > & targetList, string & key) {
+    typename list<pair<string, string> >::iterator it;
+    for (it = targetList.begin(); it != targetList.end(); ++it) {
+      if (key == it->first) {
+        return it->second;
+      }
+    }
+    string empty_str;
+    return empty_str;
+  }
+
+  string add(string & key, string & value) {
+    // hash function
+    unsigned int h = hash(key);
+    h = h % (buckets);
+
+    string oldDir = contains((*table)[h], key);
+    // case1: same element found in the table
+    if (oldDir.size() != 0) {
+      return oldDir;
+    }
+    // case2: it's a new element
+    else {
+      (*table)[h].push_front(pair<string, string>(key, value));
+    }
+    string empty_string;
+    return empty_string;
+  }
+};
+
+// helper method to extract filenames when reading files under a directory
+int getAbsoluteFiles(std::string directory, std::vector<std::string> & filesAbsolutePath) {
+  DIR * dir = opendir(directory.c_str());
+  if (dir == NULL) {
+    std::cout << directory << " is not a directory or not exist!" << std::endl;
+    return -1;
+  }
+
+  struct dirent * d_ent = NULL;
+  char dot[3] = ".";
+  char dotdot[6] = "..";
+  while ((d_ent = readdir(dir)) != NULL) {
+    if ((strcmp(d_ent->d_name, dot) != 0) && (strcmp(d_ent->d_name, dotdot) != 0)) {
+      if (d_ent->d_type == DT_LNK) {
+        continue;
+      }
+      else if (d_ent->d_type == DT_DIR) {
+        std::string newDirectory = directory + std::string("/") + std::string(d_ent->d_name);
+        if (directory[directory.length() - 1] == '/') {
+          newDirectory = directory + std::string(d_ent->d_name);
+        }
+
+        if (-1 == getAbsoluteFiles(newDirectory, filesAbsolutePath)) {
+          return -1;
+        }
+      }
+      else if (d_ent->d_type == DT_REG) {
+        std::string absolutePath = directory + std::string("/") + std::string(d_ent->d_name);
+        if (directory[directory.length() - 1] == '/') {
+          absolutePath = directory + std::string(d_ent->d_name);
+        }
+        filesAbsolutePath.push_back(absolutePath);
+      }
+      else {
+        continue;
+      }
+    }
+  }
+
+  closedir(dir);
+
+  return 0;
+}
+
+// Function to read filenames under a directory and put them into a vector of strings
+/*vector<string> getFilename(string dirName, vector<string> ans) {
+  getAbsoluteFiles(dirName, ans);
+  return ans;
+  }*/
+
+// Function to read a file and put its contents into a string
+string readFile(string filename) {
+  ifstream myfile;
+  myfile.open(filename);  //Absolute filename
+
+  if (myfile.is_open()) {
+    //stringstream stream;
+    string str = "";
+    string str_temp = "";
+
+    while (myfile.good()) {
+      getline(myfile, str_temp);
+      str.append(str_temp);
+    }
+
+    myfile.close();
+    //cout << str;
+    return str;
+  }
+
+  else {
+    cerr << "Open file fails!\n" << endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+// function to print the result
+void printRes(string oldDir, string newDir) {
+  cout << "#Removing " << newDir << " (duplicate of " << oldDir << ")."
+       << "\n"
+       << endl;
+
+  cout << "rm " << newDir << "\n" << endl;
+}
+
+// main function
+int main(int argc, char ** argv) {
+  // check argument numbers
+  if (argc != 2) {
+    perror("The following error occured");
+  }
+  cout << "#!/bin/bash" << endl;
+  // search files under the directory and put them in a vector
+  vector<string> fileNames;
+  for (int index = 1; index != argc; index++) {
+    getAbsoluteFiles(argv[index], fileNames);
+  }
+
+  // initialize a hash table
+  HashTable<std::hash<string> > ht;
+
+  // read file contents
+  // put them into a string
+  // add them into the hash table
+  vector<string>::const_iterator it_vt;
+  for (it_vt = fileNames.begin(); it_vt != fileNames.end(); ++it_vt) {
+    string fileName = *it_vt;
+    string fileContent = readFile(fileName);
+    string oldDir = ht.add(fileContent, fileName);
+
+    // print or not
+    if (oldDir.size() != 0) {
+      printRes(oldDir, fileName);
+    }
+  }
+
+  //
+  return EXIT_SUCCESS;
+}

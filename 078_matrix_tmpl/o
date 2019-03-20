@@ -1,0 +1,15 @@
+In file included from /usr/include/c++/7/vector:64:0,
+                 from Matrix.h:8,
+                 from test.cpp:1:
+/usr/include/c++/7/bits/stl_vector.h: In instantiation of ‘void std::vector<_Tp, _Alloc>::_M_initialize_dispatch(_Integer, _Integer, std::__true_type) [with _Integer = int; _Tp = std::__cxx11::basic_string<char>; _Alloc = std::allocator<std::__cxx11::basic_string<char> >]’:
+/usr/include/c++/7/bits/stl_vector.h:423:26:   required from ‘std::vector<_Tp, _Alloc>::vector(_InputIterator, _InputIterator, const allocator_type&) [with _InputIterator = int; _Tp = std::__cxx11::basic_string<char>; _Alloc = std::allocator<std::__cxx11::basic_string<char> >; std::vector<_Tp, _Alloc>::allocator_type = std::allocator<std::__cxx11::basic_string<char> >]’
+Matrix.h:25:17:   required from ‘Matrix<T>::Matrix(int, int) [with T = std::__cxx11::basic_string<char>]’
+test.cpp:38:29:   required from here
+/usr/include/c++/7/bits/stl_vector.h:1288:22: error: no matching function for call to ‘std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >::_M_fill_initialize(std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >::size_type, int&)’
+    _M_fill_initialize(static_cast<size_type>(__n), __value);
+    ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/7/bits/stl_vector.h:1334:7: note: candidate: void std::vector<_Tp, _Alloc>::_M_fill_initialize(std::vector<_Tp, _Alloc>::size_type, const value_type&) [with _Tp = std::__cxx11::basic_string<char>; _Alloc = std::allocator<std::__cxx11::basic_string<char> >; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = std::__cxx11::basic_string<char>]
+       _M_fill_initialize(size_type __n, const value_type& __value)
+       ^~~~~~~~~~~~~~~~~~
+/usr/include/c++/7/bits/stl_vector.h:1334:7: note:   no known conversion for argument 2 from ‘int’ to ‘const value_type& {aka const std::__cxx11::basic_string<char>&}’
+make: *** [test.o] Error 1

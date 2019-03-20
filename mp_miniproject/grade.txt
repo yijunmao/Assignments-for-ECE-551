@@ -1,0 +1,6 @@
+Grade: 76.1
+Comments:
+Have mem leak when running unexecutable file
+echo an unset var should output nothing
+Need more detailed comments
+Also should be more foucsed on coding formatting, e.g. delete redundant commented code blocks
